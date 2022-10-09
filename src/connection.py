@@ -1,19 +1,19 @@
 from settings import *
+from src.logging_helper import function_logs
 
 import socket
 from socket import socket as sc
 import json
 
+
 class Connection(object):
 
     def __init__(self, address, connected=False):
-
         self.address = address
         self.connected = connected
 
 
 class Server(object):
-
     VALID = 0
     INVALID = 1
     EMPTY = 2
@@ -27,17 +27,23 @@ class Server(object):
             type=socket.SOCK_DGRAM
         )
 
-        self.connections: list[Connection] = {}
+        self.connections: dict[Connection] = {}
 
+    @function_logs
     def bind(self) -> None:
 
         self.UDPServerSocket.bind(ADDRESS)
-        # self.UDPServerSocket.setblocking(False)
-    
-    def add_conn(self, data: tuple) -> None: ...
-    def del_conn(self, data: tuple) -> None: ...
 
-    async def listen(self) -> None:
+    @function_logs
+    def add_conn(self, data: tuple) -> None:
+        ...
+
+    @function_logs
+    def del_conn(self, data: tuple) -> None:
+        ...
+
+    @function_logs
+    async def listen(self) -> int | tuple[any, any, any]:
 
         bytes_address_pair = self.UDPServerSocket.recvfrom(BUFFERSIZE)
 
@@ -50,6 +56,6 @@ class Server(object):
         try:
             message = json.loads(message)
         except TypeError:
-            return (Server.INVALID, address, Server.INCORRECT_MESSAGE_FORMAT)
+            return Server.INVALID, address, Server.INCORRECT_MESSAGE_FORMAT
 
-        return (Server.VALID, address, message)
+        return Server.VALID, address, message
